@@ -26,7 +26,7 @@ Requires Python 3.11+ and a PostgreSQL database (see `backend/.env.example` for 
 
 | Landing Page | Dashboard |
 | :---: | :---: |
-| ![CogniCrew landing page](docs/screenshots/landing.jpg) | ![CogniCrew dashboard](docs/screenshots/dashboard.jpg) |
+| ![CogniCrew landing page - research workspace overview](docs/screenshots/landing.jpg) | ![CogniCrew dashboard with recent research and documents](docs/screenshots/dashboard.jpg) |
 
 | Document Research |
 | :---: |
