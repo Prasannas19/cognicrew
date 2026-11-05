@@ -8,6 +8,18 @@ The platform provides a responsive, single-origin web application where users ca
 
 ---
 
+## Screenshots
+
+| Landing Page | Dashboard |
+| :---: | :---: |
+| ![CogniCrew landing page](docs/screenshots/landing.jpg) | ![CogniCrew dashboard](docs/screenshots/dashboard.jpg) |
+
+| Document Research |
+| :---: |
+| ![Document Research with PDF upload and citations](docs/screenshots/document-research.jpg) |
+
+---
+
 ## Technology Stack
 
 The following table lists only the technologies proven by the actual source code:
