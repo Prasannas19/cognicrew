@@ -8,6 +8,20 @@ The platform provides a responsive, single-origin web application where users ca
 
 ---
 
+## Quick Start
+
+```bash
+git clone https://github.com/Prasannas19/cognicrew.git
+cd cognicrew
+cp backend/.env.example backend/.env   # fill in your own keys
+pip install -r backend/requirements.txt
+npm start                              # serves https://localhost:4000
+```
+
+Requires Python 3.11+ and a PostgreSQL database (see `backend/.env.example` for all settings).
+
+---
+
 ## Screenshots
 
 | Landing Page | Dashboard |
