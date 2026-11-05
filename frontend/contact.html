@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact — CogniCrew</title>
+  <meta name="description" content="Get in touch with the CogniCrew academic research project team.">
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 0.4rem;
+      color: var(--foreground);
+    }
+    .status-box {
+      padding: 0.85rem 1.2rem;
+      border-radius: 0.75rem;
+      font-size: 14px;
+      margin-bottom: 1.25rem;
+      display: none;
+    }
+    .status-success {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      color: #15803d;
+    }
+    .status-error {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #b91c1c;
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient-bg" aria-hidden="true">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+  </div>
+
+  <header class="nav-header">
+    <div class="nav-container">
+      <nav class="nav-inner glass-strong">
+        <a href="/" class="brand-link">
+          <span class="brand-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="5" r="3"/><circle cx="6" cy="19" r="3"/><circle cx="18" cy="19" r="3"/><path d="M12 8v4"/><path d="M6 16l6-4 6 4"/></svg>
+          </span>
+          <span class="brand-text">Cogni<span class="text-gradient">Crew</span></span>
+        </a>
+
+        <div class="nav-links desktop-only">
+          <a href="/#capabilities" class="nav-link">Capabilities</a>
+          <a href="/#team" class="nav-link">Agent Team</a>
+          <a href="/#how-it-works" class="nav-link">How It Works</a>
+          <a href="/#demo" class="nav-link">Demo</a>
+        </div>
+
+        <div class="nav-actions">
+          <a href="/auth.html" class="nav-link desktop-only" id="nav-signin-btn">Sign in</a>
+          <a href="/auth.html" class="btn-primary nav-btn" id="nav-cta-btn">Get started</a>
+          <button class="nav-burger" id="nav-burger" aria-label="Toggle menu" aria-expanded="false">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+          </button>
+        </div>
+      </nav>
+
+      <div class="mobile-nav" id="mobile-nav">
+        <a href="/#capabilities" class="mobile-nav-link">Capabilities</a>
+        <a href="/#team" class="mobile-nav-link">Agent Team</a>
+        <a href="/#how-it-works" class="mobile-nav-link">How It Works</a>
+        <a href="/#demo" class="mobile-nav-link">Demo</a>
+        <div class="mobile-nav-divider"></div>
+        <a href="/auth.html" class="mobile-nav-link">Sign in</a>
+        <a href="/dashboard.html" class="mobile-nav-link" style="color:var(--primary); font-weight:600;">Workspace</a>
+      </div>
+    </div>
+  </header>
+
+  <main style="max-width:64rem; margin:0 auto; padding:8.5rem 1.25rem 5rem;">
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:2.5rem; align-items:start;">
+      <!-- Contact Info -->
+      <div>
+        <p class="eyebrow">Contact</p>
+        <h1 class="font-display" style="font-size:2.5rem; font-weight:700; margin-top:0.4rem;">Get in touch</h1>
+        <p style="font-size:15px; color:var(--muted-ink); margin-top:0.5rem; line-height:1.6;">
+          Have questions about CogniCrew, academic research workflows, or the project? Send a message and it will be stored directly in our PostgreSQL database.
+        </p>
+
+        <div style="margin-top:2rem; display:flex; flex-direction:column; gap:1rem;">
+          <div class="glass" style="padding:1.25rem; border-radius:1rem;">
+            <p class="eyebrow" style="color:var(--primary);">Project Lead</p>
+            <h3 class="font-display" style="font-size:1.15rem; font-weight:600; margin-top:0.25rem;">Prasanna Manoj Salve</h3>
+            <p style="font-size:13px; color:var(--muted-ink); margin-top:0.25rem;">T.Y.B.Sc Computer Science</p>
+          </div>
+
+          <div class="glass" style="padding:1.25rem; border-radius:1rem;">
+            <p class="eyebrow" style="color:var(--primary);">Institution</p>
+            <p style="font-size:14px; font-weight:500; margin-top:0.25rem;">Tikaram Jagannath Arts, Commerce and Science College</p>
+            <p style="font-size:13px; color:var(--muted-ink); margin-top:0.25rem;">Khadki, Pune &middot; Academic Year 2025–26</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contact Form -->
+      <div class="glass" style="border-radius:1.5rem; padding:2rem; box-shadow:0 16px 40px -16px rgba(20,40,50,0.15);">
+        <div id="contact-status" class="status-box"></div>
+
+        <form id="contact-form" onsubmit="handleContactSubmit(event)">
+          <div class="form-group">
+            <label class="form-label" for="contact-name">Your Name</label>
+            <input type="text" id="contact-name" class="input-text" placeholder="e.g. Rahul Sharma" required minlength="2" maxlength="100">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="contact-email">Email Address</label>
+            <input type="email" id="contact-email" class="input-text" placeholder="name@example.edu" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="contact-message">Message</label>
+            <textarea id="contact-message" class="input-text textarea" placeholder="Your inquiry or research feedback (minimum 10 characters)…" required minlength="10" maxlength="2000"></textarea>
+          </div>
+
+          <button type="submit" class="btn-primary" style="width:100%; border-radius:0.75rem; padding:12px;" id="contact-btn">
+            Send Message
+          </button>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="max-w-7xl">
+      <p style="font-size:13px; color:var(--muted-ink);">&copy; 2025–26 CogniCrew. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script src="/js/app.js"></script>
+  <script>
+    async function handleContactSubmit(e) {
+      e.preventDefault();
+      const statusBox = document.getElementById('contact-status');
+      const btn = document.getElementById('contact-btn');
+      statusBox.style.display = 'none';
+
+      const name = document.getElementById('contact-name').value.trim();
+      const email = document.getElementById('contact-email').value.trim();
+      const message = document.getElementById('contact-message').value.trim();
+
+      if (name.length < 2) {
+        showStatus('Please enter your name.', 'error');
+        return;
+      }
+      if (message.length < 10) {
+        showStatus('Message must be at least 10 characters.', 'error');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerText = 'Sending…';
+
+      try {
+        const res = await apiFetch('/contact', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, message })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.detail || 'Could not send message');
+        }
+        showStatus(data.message || 'Your message has been received. Thank you.', 'success');
+        document.getElementById('contact-form').reset();
+      } catch (err) {
+        showStatus(err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Send Message';
+      }
+    }
+
+    function showStatus(msg, type) {
+      const box = document.getElementById('contact-status');
+      box.innerText = msg;
+      box.className = 'status-box ' + (type === 'success' ? 'status-success' : 'status-error');
+      box.style.display = 'block';
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Research History — CogniCrew</title>
+  <meta name="description" content="View past academic research runs, reports, sources, and follow-ups.">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="ambient-bg" aria-hidden="true">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+  </div>
+
+  <header class="nav-header">
+    <div class="nav-container">
+      <nav class="nav-inner glass-strong">
+        <a href="/" class="brand-link">
+          <span class="brand-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="5" r="3"/><circle cx="6" cy="19" r="3"/><circle cx="18" cy="19" r="3"/><path d="M12 8v4"/><path d="M6 16l6-4 6 4"/></svg>
+          </span>
+          <span class="brand-text">Cogni<span class="text-gradient">Crew</span></span>
+        </a>
+
+        <div class="nav-links desktop-only">
+          <a href="/#capabilities" class="nav-link">Capabilities</a>
+          <a href="/#how-it-works" class="nav-link">How It Works</a>
+          <a href="/#demo" class="nav-link">Demo</a>
+        </div>
+
+        <div class="nav-actions">
+          <a href="/dashboard.html" class="glass-control" style="border-radius:9999px; padding:8px 16px; font-size:13px; font-weight:500;">Workspace</a>
+          <a href="/" class="glass-control" style="border-radius:9999px; padding:8px 16px; font-size:13px; font-weight:500;">Home</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main style="max-width:54rem; margin:0 auto; padding:8.5rem 1.25rem 4rem;">
+    <div style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:1rem;">
+      <div>
+        <p class="eyebrow">Archive</p>
+        <h1 class="font-display" style="font-size:2.25rem; font-weight:700; margin-top:0.25rem;">Research History</h1>
+        <p style="font-size:14px; color:var(--muted-ink); margin-top:0.25rem;">Review your past verified reports and citations.</p>
+      </div>
+      <a href="/dashboard.html" class="btn-primary" style="padding:10px 22px; font-size:14px;">+ New Research</a>
+    </div>
+
+    <!-- Reports list container -->
+    <div id="reports-list" style="margin-top:2rem; display:grid; gap:1rem;">
+      <p style="color:var(--muted-ink); font-size:14px;">Loading reports…</p>
+    </div>
+
+    <!-- Modal for viewing full past report -->
+    <div id="report-modal" style="display:none; position:fixed; inset:0; background:rgba(20,32,42,0.4); z-index:100; backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:1rem;">
+      <div class="glass" style="background:#ffffff; max-width:48rem; width:100%; max-height:85vh; overflow-y:auto; border-radius:1.5rem; padding:2rem; position:relative; box-shadow:0 24px 60px rgba(0,0,0,0.2);">
+        <button onclick="closeReportModal()" style="position:absolute; top:1.25rem; right:1.25rem; border:none; background:transparent; font-size:1.5rem; cursor:pointer; color:var(--muted-ink);">&times;</button>
+        <div id="modal-content">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="/js/toast.js"></script>
+  <script src="/js/app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      window._historyLoadStart = performance.now();
+      await loadHistory();
+    });
+
+    function esc(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    async function loadHistory() {
+      const container = document.getElementById('reports-list');
+      const t0 = performance.now();
+      try {
+        const res = await apiFetch('/history/reports').catch(() => null);
+        if (!res) {
+          container.innerHTML = `
+            <div class="glass" style="text-align:center; padding:3rem 1.5rem; border-radius:1.5rem;">
+              <p style="font-size:15px; color:var(--muted-ink);">The research server is currently offline or unreachable.</p>
+              <a href="/dashboard.html" class="btn-primary" style="margin-top:1rem; padding:10px 24px;">Return to Workspace</a>
+            </div>
+          `;
+          return;
+        }
+        if (res.status === 401) {
+          container.innerHTML = `
+            <div class="glass" style="text-align:center; padding:3rem 1.5rem; border-radius:1.5rem;">
+              <p style="font-size:15px; color:var(--muted-ink);">Sign in to view your research history.</p>
+              <a href="/auth.html" class="btn-primary" style="margin-top:1rem; padding:10px 24px;">Sign in</a>
+            </div>
+          `;
+          return;
+        }
+        const data = await res.json().catch(() => ({}));
+        const reports = data.reports || [];
+        console.log(`[history] list loaded in ${(performance.now() - t0).toFixed(0)} ms (${reports.length} reports)`);
+        if (!reports.length) {
+          container.innerHTML = `
+            <div class="glass" style="text-align:center; padding:3rem 1.5rem; border-radius:1.5rem;">
+              <p style="font-size:15px; color:var(--muted-ink);">No research reports yet.</p>
+              <a href="/dashboard.html" class="btn-primary" style="margin-top:1rem; padding:10px 24px;">Start your first research run</a>
+            </div>
+          `;
+          return;
+        }
+        container.innerHTML = reports.map(rep => {
+          const dateStr = rep.created_at ? new Date(rep.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : '';
+          return `
+            <div class="glass card-item" id="report-card-${rep.report_id}">
+              <div style="display:flex; justify-content:space-between; align-items:center; gap:0.75rem;">
+                <div style="cursor:pointer; flex:1; min-width:0;" onclick="openReport('${rep.report_id}')">
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span class="badge-live" style="font-size:10px;">${esc((rep.mode || 'research').toUpperCase())}</span>
+                    <span class="font-mono" style="font-size:11px; color:var(--muted-ink);">${esc(dateStr)}</span>
+                  </div>
+                  <h3 class="font-display" style="font-size:1.2rem; font-weight:600; margin-top:0.6rem;">${esc(rep.question)}</h3>
+                  <p style="font-size:13px; color:var(--muted-ink); margin-top:0.4rem; line-height:1.5;">${esc(rep.summary || 'Click to view findings and verified sources.')}</p>
+                </div>
+                <button class="glass-control" title="Delete this report" aria-label="Delete report" style="border-radius:9999px; padding:8px 10px; color:var(--destructive); flex-shrink:0;" onclick="event.stopPropagation(); deleteReport('${rep.report_id}', this)">✕</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } catch (err) {
+        container.innerHTML = `<p style="color:var(--destructive); font-size:14px;">Error loading history: ${esc(err.message)}</p>`;
+      }
+    }
+
+    async function deleteReport(reportId, btn) {
+      if (!confirm('Delete this report from your history? This cannot be undone.')) return;
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = btn.textContent === 'Delete' ? 'Deleting…' : '…';
+      }
+      try {
+        const res = await apiFetch(`/history/reports/${reportId}`, { method: 'DELETE' });
+        if (res.status === 401) { window.location.href = '/auth.html'; return; }
+        if (!res.ok && res.status !== 204) {
+          const data = await res.json().catch(() => null);
+          throw new Error((data && data.detail) || `Delete failed (HTTP ${res.status})`);
+        }
+        // TASK 1 (v8): update the list without a full page reload by removing
+        // the EXACT item by report id. Works for both entry points (the list's
+        // ✕ button passes btn; the modal's Delete button passes btn=undefined,
+        // which previously left a stale card behind the modal).
+        showToast('Report deleted successfully', 'success');
+        const card = (btn && btn.closest('.card-item')) || document.getElementById('report-card-' + reportId);
+        if (card) card.remove();
+        const container = document.getElementById('reports-list');
+        if (!container.querySelector('.card-item')) await loadHistory();
+        if (window.openReportId === reportId) closeReportModal();
+      } catch (err) {
+        showToast('Delete failed: ' + err.message, 'error');
+        if (btn) { btn.disabled = false; btn.textContent = btn.textContent === 'Deleting…' ? 'Delete' : '✕'; }
+      }
+    }
+
+    async function openReport(reportId) {
+      const modal = document.getElementById('report-modal');
+      const content = document.getElementById('modal-content');
+      modal.style.display = 'flex';
+      content.innerHTML = '<p style="color:var(--muted-ink);">Loading report details…</p>';
+
+      let rep;
+      try {
+        const res = await apiFetch(`/history/reports/${reportId}`);
+        if (res.status === 401) { window.location.href = '/auth.html'; return; }
+        if (!res.ok) {
+          // TASK 1 (v8): a genuinely deleted (or otherwise missing) report gets
+          // a graceful message, not a raw HTTP 404 dump.
+          const data = await res.json().catch(() => null);
+          if (res.status === 404) {
+            content.innerHTML = `<p style="color:var(--destructive);">This report no longer exists in your history. It may have been deleted.</p>`;
+          } else {
+            throw new Error((data && data.detail) || `Could not load report (HTTP ${res.status})`);
+          }
+          return;
+        }
+        rep = await res.json();
+      } catch (err) {
+        content.innerHTML = `<p style="color:var(--destructive);">Error loading report: ${esc(err.message)}</p>`;
+        return;
+      }
+
+      // TASK 3B/3C (v5): remember the reopened report and render the FULL
+      // report (same surface as a fresh dashboard result), including the
+      // working follow-up chat targeting this same report id.
+      window.openReportId = rep.report_id;
+      renderFullReport(rep);
+    }
+
+    // Full-report rendering for the history modal: Direct Answer, summary,
+    // every stored section (Synthesized Answer / Evidence / Web Sources /
+    // Integrated Analysis), sources, chat thread and follow-up input.
+    function renderFullReport(rep) {
+      const content = document.getElementById('modal-content');
+      const dateStr = rep.created_at ? new Date(rep.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+
+      let directHtml = '';
+      const firstAi = (rep.body || []).find(s => s.source_type === 'ai') || (rep.body || [])[0];
+      if (firstAi && firstAi.body) {
+        // Same lead rule as the backend: prefer real prose over headings/tables/bullets.
+        const lead = firstAi.body.split('\n').map(l => l.trim())
+          .find(l => l && !l.startsWith('#') && !l.startsWith('---') && !l.startsWith('**') && !l.startsWith('|') && !l.startsWith('>') && !l.startsWith('- ') && !l.startsWith('* '));
+        if (lead) {
+          directHtml = `
+            <div style="margin-top:1rem; background:rgba(255,241,168,0.35); border-radius:0.5rem; padding:1rem;">
+              <p style="font-size:1rem; margin:0;"><strong>Direct Answer:</strong>
+                <span style="display:block; margin-top:0.35rem; font-size:14px; font-weight:normal; line-height:1.6;">${esc(lead)}</span>
+              </p>
+            </div>`;
+        }
+      }
+
+      let sectionsHtml = '';
+      for (const sec of (rep.body || [])) {
+        sectionsHtml += `
+          <div style="margin-bottom:1.25rem;">
+            <h4 class="font-display" style="font-size:1.15rem; font-weight:600; color:var(--primary);">${esc(sec.heading || '')}</h4>
+            <p style="font-size:14px; line-height:1.7; margin-top:0.5rem; white-space:pre-wrap;">${esc(sec.body || '')}</p>
+          </div>`;
+      }
+      if (!sectionsHtml) sectionsHtml = '<p style="font-size:13px; color:var(--muted-ink);">No stored report sections were found for this report.</p>';
+
+      let sourcesHtml = '';
+      if (rep.sources && rep.sources.length) {
+        sourcesHtml = rep.sources.map(src => {
+          if (src.source_type === 'document') {
+            const label = src.printed_page_label ? ` · Book page ${src.printed_page_label}` : '';
+            return `
+              <div class="source-card" style="margin-top:0.5rem;">
+                <div style="display:flex; justify-content:space-between; gap:0.5rem;">
+                  <span style="font-weight:600; font-size:13px;">${esc(src.title)}</span>
+                  <span class="badge-live" style="font-size:10px;">PDF p.${esc(src.pdf_page_number)}${label}</span>
+                </div>
+                <p style="font-size:12px; font-style:italic; margin-top:0.25rem; color:var(--muted-ink);">"${esc(src.excerpt)}"</p>
+              </div>`;
+          }
+          return `
+            <div class="source-card" style="margin-top:0.5rem;">
+              <a href="${esc(src.url)}" target="_blank" rel="noopener noreferrer" style="font-weight:600; font-size:13px; color:var(--primary); text-decoration:none;">${esc(src.title)} ↗</a>
+              <p style="font-size:12px; margin-top:0.25rem; color:var(--muted-ink);">${esc(src.excerpt)}</p>
+            </div>`;
+        }).join('');
+      } else {
+        sourcesHtml = '<p style="font-size:12px; color:var(--muted-ink);">No sources recorded.</p>';
+      }
+
+      let threadHtml = '';
+      for (const m of (rep.messages || [])) {
+        threadHtml += `<div class="chat-msg ${esc(m.role)}">${esc(m.text)}</div>`;
+      }
+
+      content.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:0.75rem;">
+          <span class="eyebrow">${esc((rep.mode || 'document').toUpperCase())} REPORT</span>
+          <button class="glass-control" title="Delete this report" style="border-radius:9999px; padding:6px 12px; font-size:12px; color:var(--destructive);" onclick="deleteReport('${rep.report_id}')">Delete</button>
+        </div>
+        <h2 class="font-display" style="font-size:1.6rem; font-weight:700; margin-top:0.25rem;">${esc(rep.question)}</h2>
+        <p class="font-mono" style="font-size:11px; color:var(--muted-ink); margin-top:0.25rem;">${esc(dateStr)}</p>
+        ${directHtml}
+        <div style="margin-top:1rem; background:var(--secondary); padding:1rem; border-radius:0.75rem;">
+          <p style="font-size:14px; font-weight:600; color:var(--primary);">Executive Summary</p>
+          <p style="font-size:14px; margin-top:0.25rem; line-height:1.6;">${esc(rep.summary)}</p>
+        </div>
+        <div style="margin-top:1.5rem;">${sectionsHtml}</div>
+        <div style="margin-top:1.5rem; border-top:1px solid var(--line); padding-top:1rem;">
+          <h4 class="font-display" style="font-size:1.15rem; font-weight:600;">Verified Sources</h4>
+          ${sourcesHtml}
+        </div>
+        <div style="margin-top:1.5rem; border-top:1px solid var(--line); padding-top:1rem;">
+          <h4 class="font-display" style="font-size:1.15rem; font-weight:600;">Ask a grounded follow-up</h4>
+          <p style="font-size:12px; color:var(--muted-ink); margin-top:2px;">Follow-ups search the documents this report was generated from.</p>
+          <div id="chat-thread" style="margin-top:1rem; max-height:260px; overflow-y:auto;">${threadHtml}</div>
+          <form onsubmit="handleFollowUp(event)" style="display:flex; gap:0.5rem; margin-top:1rem;">
+            <input type="text" id="followup-input" class="input-text" placeholder="Ask a follow-up about this material…" required style="flex:1;">
+            <button type="submit" class="btn-primary" style="padding:0 20px;" id="followup-btn">Send</button>
+          </form>
+        </div>
+      `;
+    }
+
+    // TASK 3C (v5): same follow-up component/logic and endpoint as the
+    // dashboard's fresh-report chat (/research/{id}/follow-ups).
+    async function handleFollowUp(e) {
+      e.preventDefault();
+      const reportId = window.openReportId;
+      if (!reportId) return;
+      const input = document.getElementById('followup-input');
+      const question = input.value.trim();
+      if (!question) return;
+      const btn = document.getElementById('followup-btn');
+      btn.disabled = true;
+      btn.innerText = '…';
+      const thread = document.getElementById('chat-thread');
+      const userMsg = document.createElement('div');
+      userMsg.className = 'chat-msg user';
+      userMsg.textContent = question;
+      thread.appendChild(userMsg);
+      input.value = '';
+      thread.scrollTop = thread.scrollHeight;
+      try {
+        const res = await apiFetch(`/research/${reportId}/follow-ups`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Follow-up failed');
+        const assistantMsg = document.createElement('div');
+        assistantMsg.className = 'chat-msg assistant';
+        const answerEl = document.createElement('div');
+        answerEl.style.whiteSpace = 'pre-wrap';
+        answerEl.textContent = data.answer || '';
+        assistantMsg.appendChild(answerEl);
+        if (data.citations && data.citations.length) {
+          const citeEl = document.createElement('div');
+          citeEl.style.cssText = 'margin-top:0.5rem; font-size:11px; color:var(--primary); font-family:var(--font-mono);';
+          citeEl.textContent = data.citations.map(c => `[PDF p.${c.pdf_page_number}${c.printed_page_label ? ' / Book p.'+c.printed_page_label : ''}${c.start_line && c.end_line ? ' L.'+c.start_line+'–'+c.end_line : ''}]`).join(' ');
+          assistantMsg.appendChild(citeEl);
+        }
+        thread.appendChild(assistantMsg);
+        thread.scrollTop = thread.scrollHeight;
+      } catch (err) {
+        const errMsg = document.createElement('div');
+        errMsg.className = 'chat-msg assistant';
+        errMsg.style.color = 'var(--destructive)';
+        errMsg.textContent = 'Error: ' + err.message;
+        thread.appendChild(errMsg);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Send';
+      }
+    }
+
+    function closeReportModal() {
+      document.getElementById('report-modal').style.display = 'none';
+      window.openReportId = null;
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CogniCrew — Your Personal Team of AI Research Agents</title>
+  <meta name="description" content="Academic AI-powered research assistant with page-aware PDF retrieval, Exa web research, and source verification.">
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    /* Ensure hero heading stays on two lines */
+    @media (min-width: 768px) {
+      .hero-title {
+        font-size: clamp(3.5rem, 6vw, 4.6rem);
+        line-height: 1.1;
+      }
+      .hero-desc {
+        font-size: 1.15rem;
+        line-height: 1.7;
+        max-width: 36rem;
+      }
+    }
+    
+    
+    /* Ensure description shows three lines on desktop */
+    @media (min-width: 900px) {
+      .hero-desc {
+        max-width: 32rem;
+      }
+    }
+    
+    /* Research rail sizing */
+    @media (min-width: 1024px) {
+      .research-rail {
+        padding: 2rem 2.25rem;
+      }
+      .rail-grid {
+        gap: 1.25rem;
+        margin-top: 1.75rem;
+      }
+      .rail-card {
+        padding: 1.5rem 1.35rem;
+      }
+      .rail-icon-box {
+        width: 2.75rem;
+        height: 2.75rem;
+      }
+      .rail-card-title {
+        font-size: 15.5px;
+        margin-top: 1rem;
+      }
+      .rail-card-desc {
+        font-size: 13px;
+        margin-top: 0.4rem;
+      }
+    }
+
+    /* Landing Page Preview Quiz Option Buttons */
+    .quiz-option-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      border-radius: 0.75rem;
+      background: #ffffff;
+      border: 1.5px solid var(--border, #e2e8f0);
+      cursor: pointer;
+      transition: all 0.18s ease;
+      font-family: var(--font-sans, system-ui, -apple-system, sans-serif);
+      font-size: 13.5px;
+      line-height: 1.45;
+      text-align: left;
+      width: 100%;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+      color: var(--ink, #1e293b);
+      outline: none;
+    }
+
+    .quiz-option-btn:hover:not(:disabled) {
+      border-color: #008f86;
+      background: #f0fdf9;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,143,134,0.08);
+    }
+
+    .quiz-option-btn:focus-visible {
+      outline: 2px solid #008f86;
+      outline-offset: 2px;
+    }
+
+    .quiz-option-btn.correct,
+    .quiz-option-btn.selected-correct {
+      background: #ecfdf5 !important;
+      border-color: #10b981 !important;
+      color: #065f46 !important;
+      font-weight: 500;
+    }
+
+    .quiz-option-btn.incorrect,
+    .quiz-option-btn.selected-incorrect {
+      background: #fef2f2 !important;
+      border-color: #ef4444 !important;
+      color: #991b1b !important;
+    }
+
+    .quiz-opt-letter {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 12px;
+      background: #f1f5f9;
+      color: #475569;
+      flex-shrink: 0;
+      transition: all 0.15s ease;
+    }
+
+    .quiz-option-btn.correct .quiz-opt-letter,
+    .quiz-option-btn.selected-correct .quiz-opt-letter {
+      background: #10b981;
+      color: #ffffff;
+    }
+
+    .quiz-option-btn.incorrect .quiz-opt-letter,
+    .quiz-option-btn.selected-incorrect .quiz-opt-letter {
+      background: #ef4444;
+      color: #ffffff;
+    }
+  </style>
+</head>
+<body>
+  <!-- Ambient Atmosphere -->
+  <div class="ambient-bg" aria-hidden="true">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <!-- Header / Navbar -->
+  <header class="nav-header" id="navbar">
+    <div class="nav-container">
+      <nav class="nav-inner glass-strong">
+        <a href="/" class="brand-link" aria-label="CogniCrew home">
+          <span class="brand-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="3"/><circle cx="6" cy="19" r="3"/><circle cx="18" cy="19" r="3"/><path d="M12 8v4"/><path d="M6 16l6-4 6 4"/></svg>
+          </span>
+          <span class="brand-text">Cogni<span class="text-gradient">Crew</span></span>
+        </a>
+
+        <div class="nav-links desktop-only">
+          <a href="/#capabilities" class="nav-link">Capabilities</a>
+          <a href="/#team" class="nav-link">Agent Team</a>
+          <a href="/#how-it-works" class="nav-link">How It Works</a>
+          <a href="/#demo" class="nav-link">Demo</a>
+        </div>
+
+        <div class="nav-actions">
+          <a href="/auth.html" class="nav-link desktop-only" id="nav-signin-btn">Sign in</a>
+          <a href="/auth.html" class="btn-primary nav-btn" id="nav-cta-btn">Get started</a>
+          <script>
+            (function() {
+              try {
+                var u = JSON.parse(localStorage.getItem('cc_auth_user') || 'null');
+                if (u && u.name) {
+                  var s = document.getElementById('nav-signin-btn');
+                  var c = document.getElementById('nav-cta-btn');
+                  if (s) { s.innerText = 'Dashboard'; s.href = '/dashboard.html'; }
+                  if (c) { c.innerText = 'Workspace'; c.href = '/dashboard.html'; }
+                }
+              } catch (_) {}
+            })();
+          </script>
+          <button class="nav-burger" id="nav-burger" aria-label="Toggle menu" aria-expanded="false">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+          </button>
+        </div>
+      </nav>
+
+      <!-- Mobile Menu -->
+      <div class="mobile-nav" id="mobile-nav">
+        <a href="/#capabilities" class="mobile-nav-link">Capabilities</a>
+        <a href="/#team" class="mobile-nav-link">Agent Team</a>
+        <a href="/#how-it-works" class="mobile-nav-link">How It Works</a>
+        <a href="/#demo" class="mobile-nav-link">Demo</a>
+        <div class="mobile-nav-divider"></div>
+        <a href="/auth.html" class="mobile-nav-link">Sign in</a>
+        <a href="/dashboard.html" class="mobile-nav-link" style="color:var(--primary); font-weight:600;">Workspace</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero Section -->
+    <section id="top" class="hero-section">
+      <div class="max-w-7xl">
+        <div class="hero-content">
+          <div class="glass-control hero-badge">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+            <span class="eyebrow" style="color:var(--primary);">FOUR SPECIALISTS · ONE RESEARCH WORKFLOW</span>
+          </div>
+
+          <h1 class="font-display hero-title">
+            Research, without<br class="hero-br">
+            <span class="text-gradient">the scattered tabs.</span>
+          </h1>
+
+          <p class="hero-desc">
+            CogniCrew brings your documents, web research, verification, and report writing into one source-aware research workflow.
+          </p>
+
+          <div class="hero-ctas">
+            <a href="/auth.html" class="btn-primary hero-btn-main">Try the workspace</a>
+          </div>
+        </div>
+
+        <!-- Research Rail -->
+        <div class="glass research-rail">
+          <div class="rail-header">
+            <span class="eyebrow rail-eyebrow">The research rail</span>
+            <span class="badge-live">
+              <span class="live-dot">
+                <span class="live-dot-ping"></span>
+                <span class="live-dot-solid"></span>
+              </span>
+              Live
+            </span>
+          </div>
+
+          <div class="rail-grid" id="research-rail-grid">
+            <!-- Card 01: Web Researcher -->
+            <div class="rail-card" data-card="01" role="button" tabindex="0">
+              <div class="rail-card-top">
+                <div class="rail-icon-box">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+                </div>
+                <span class="font-mono rail-card-num">01</span>
+              </div>
+              <h3 class="rail-card-title">Web Researcher</h3>
+              <p class="rail-card-desc">Gathers web sources when you ask for topic research.</p>
+            </div>
+
+            <!-- Card 02: Document Analyst -->
+            <div class="rail-card" data-card="02" role="button" tabindex="0">
+              <div class="rail-card-top">
+                <div class="rail-icon-box">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+                </div>
+                <span class="font-mono rail-card-num">02</span>
+              </div>
+              <h3 class="rail-card-title">Document Analyst</h3>
+              <p class="rail-card-desc">Reads your PDFs page by page, retaining citations.</p>
+            </div>
+
+            <!-- Card 03: Fact Checker -->
+            <div class="rail-card" data-card="03" role="button" tabindex="0">
+              <div class="rail-card-top">
+                <div class="rail-icon-box">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg>
+                </div>
+                <span class="font-mono rail-card-num">03</span>
+              </div>
+              <h3 class="rail-card-title">Fact Checker</h3>
+              <p class="rail-card-desc">Checks important findings against their sources.</p>
+            </div>
+
+            <!-- Card 04: Report Writer -->
+            <div class="rail-card" data-card="04" role="button" tabindex="0">
+              <div class="rail-card-top">
+                <div class="rail-icon-box">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                </div>
+                <span class="font-mono rail-card-num">04</span>
+              </div>
+              <h3 class="rail-card-title">Report Writer</h3>
+              <p class="rail-card-desc">Composes the verified, structured answer.</p>
+            </div>
+          </div>
+
+          <!-- Bottom Workflow Row -->
+          <div class="rail-footer">
+            <span class="rail-flow-text">
+              <strong class="rail-flow-strong">Question</strong> &rarr; evidence &rarr; retrieval &rarr; verification &rarr; <strong class="rail-flow-strong">cited report</strong>
+            </span>
+            <div class="rail-badges">
+              <span class="glass-control rail-tag">page-aware retrieval</span>
+              <span class="glass-control rail-tag">traceable sources</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Problem Section -->
+    <section id="problem" style="padding: 5.5rem 0;">
+      <div class="max-w-7xl">
+        <div style="text-align:center; max-width:40rem; margin:0 auto;">
+          <p class="eyebrow">The problem</p>
+          <h2 class="font-display" style="font-size:2.4rem; font-weight:600; margin-top:0.75rem;">Research shouldn't mean juggling six tabs.</h2>
+          <p style="color:var(--muted-ink); margin-top:0.75rem;">Reading, searching, and stitching sources together by hand is slow, and it shows in the quality of the final work.</p>
+        </div>
+
+        <div class="grid-3" style="margin-top: 3rem;">
+          <div class="glass card-item">
+            <span class="font-mono" style="font-size:12px; color:var(--muted-ink);">01</span>
+            <h3 class="font-display" style="font-size:1.3rem; margin-top:0.75rem;">Scattered material</h3>
+            <p style="font-size:14px; color:var(--muted-ink); margin-top:0.5rem; line-height:1.6;">Your notes, PDFs, and sources live in different places, making it hard to see the big picture.</p>
+          </div>
+          <div class="glass card-item">
+            <span class="font-mono" style="font-size:12px; color:var(--muted-ink);">02</span>
+            <h3 class="font-display" style="font-size:1.3rem; margin-top:0.75rem;">Weak traceability</h3>
+            <p style="font-size:14px; color:var(--muted-ink); margin-top:0.5rem; line-height:1.6;">Answers are difficult to connect back to source material when citations and page numbers get lost.</p>
+          </div>
+          <div class="glass card-item">
+            <span class="font-mono" style="font-size:12px; color:var(--muted-ink);">03</span>
+            <h3 class="font-display" style="font-size:1.3rem; margin-top:0.75rem;">Manual synthesis</h3>
+            <p style="font-size:14px; color:var(--muted-ink); margin-top:0.5rem; line-height:1.6;">You spend more time organizing findings and formatting quotes than actually understanding concepts.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Capabilities Section -->
+    <section id="capabilities" style="padding: 5.5rem 0;">
+      <div class="max-w-7xl">
+        <div style="text-align:center; max-width:40rem; margin:0 auto;">
+          <p class="eyebrow">Capabilities</p>
+          <h2 class="font-display" style="font-size:2.4rem; font-weight:600; margin-top:0.75rem;">One workspace. Different research modes.</h2>
+          <p style="color:var(--muted-ink); margin-top:0.75rem;">Pick the mode that matches the question, and the scope of every answer is always explicit.</p>
+        </div>
+
+        <div class="grid-3" style="margin-top: 3rem;">
+          <div class="glass card-item">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div style="width:3rem; height:3rem; border-radius:1rem; background:linear-gradient(135deg, var(--primary), #0d9488); display:flex; align-items:center; justify-content:center; color:#fff;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+              </div>
+              <span class="font-mono" style="font-size:12px; color:var(--muted-ink);">01</span>
+            </div>
+            <h3 class="font-display" style="font-size:1.25rem; margin-top:1.25rem;">Document Research</h3>
+            <p style="font-size:14px; color:var(--muted-ink); margin-top:0.5rem; line-height:1.6;">
+              Ask questions about your uploaded documents. Answers are grounded in the pages actually retrieved, with verified page numbers, not guesses. The web is never silently queried.
+            </p>
+          </div>
+
+          <div class="glass card-item">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div style="width:3rem; height:3rem; border-radius:1rem; background:linear-gradient(135deg, var(--primary), #0d9488); display:flex; align-items:center; justify-content:center; color:#fff;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+              </div>
+              <span class="font-mono" style="font-size:12px; color:var(--muted-ink);">02</span>
+            </div>
+            <h3 class="font-display" style="font-size:1.25rem; margin-top:1.25rem;">Topic Research</h3>
+            <p style="font-size:14px; color:var(--muted-ink); margin-top:0.5rem; line-height:1.6;">
+              Explore a topic using real web sources. Every source shown was really retrieved for your question, with a verifiable link you can open. If Exa is not configured, it says so honestly.
+            </p>
+          </div>
+
+          <div class="glass card-item">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div style="width:3rem; height:3rem; border-radius:1rem; background:linear-gradient(135deg, var(--primary), #0d9488); display:flex; align-items:center; justify-content:center; color:#fff;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>
+              </div>
+              <span class="font-mono" style="font-size:12px; color:var(--muted-ink);">03</span>
+            </div>
+            <h3 class="font-display" style="font-size:1.25rem; margin-top:1.25rem;">AI Study Tools</h3>
+            <p style="font-size:14px; color:var(--muted-ink); margin-top:0.5rem; line-height:1.6;">
+              Generate interactive multi-choice quizzes and 3D flashcards directly from your uploaded study documents with verified page citations and immediate mastery feedback.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Agent Team Section -->
+    <section id="team" style="padding: 5.5rem 0;">
+      <div class="max-w-7xl">
+        <div style="text-align:center; max-width:40rem; margin:0 auto;">
+          <p class="eyebrow">The agent team</p>
+          <h2 class="font-display" style="font-size:2.4rem; font-weight:600; margin-top:0.75rem;">Meet your research team</h2>
+          <p style="color:var(--muted-ink); margin-top:0.75rem;">Four specialized research roles, each responsible for a distinct part of the academic workflow.</p>
+        </div>
+
+        <div class="grid-4" style="margin-top: 3rem;">
+          <div class="glass card-item" style="text-align:center;">
+            <span class="font-mono" style="font-size:11px; color:var(--muted-ink);">01</span>
+            <div style="width:3.5rem; height:3.5rem; margin:1rem auto 0; border-radius:1rem; background:linear-gradient(135deg, var(--primary), #0d9488); display:flex; align-items:center; justify-content:center; color:#fff;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+            </div>
+            <h3 class="font-display" style="font-size:1.2rem; margin-top:1rem;">Web Researcher</h3>
+            <p style="font-size:13px; color:var(--muted-ink); margin-top:0.5rem;">Searches relevant online sources when web research is requested.</p>
+          </div>
+
+          <div class="glass card-item" style="text-align:center;">
+            <span class="font-mono" style="font-size:11px; color:var(--muted-ink);">02</span>
+            <div style="width:3.5rem; height:3.5rem; margin:1rem auto 0; border-radius:1rem; background:linear-gradient(135deg, var(--primary), #0d9488); display:flex; align-items:center; justify-content:center; color:#fff;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <h3 class="font-display" style="font-size:1.2rem; margin-top:1rem;">Document Analyst</h3>
+            <p style="font-size:13px; color:var(--muted-ink); margin-top:0.5rem;">Retrieves relevant passages from uploaded material, page by page.</p>
+          </div>
+
+          <div class="glass card-item" style="text-align:center;">
+            <span class="font-mono" style="font-size:11px; color:var(--muted-ink);">03</span>
+            <div style="width:3.5rem; height:3.5rem; margin:1rem auto 0; border-radius:1rem; background:linear-gradient(135deg, var(--primary), #0d9488); display:flex; align-items:center; justify-content:center; color:#fff;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg>
+            </div>
+            <h3 class="font-display" style="font-size:1.2rem; margin-top:1rem;">Fact Checker</h3>
+            <p style="font-size:13px; color:var(--muted-ink); margin-top:0.5rem;">Checks important findings against retrieved evidence where possible.</p>
+          </div>
+
+          <div class="glass card-item" style="text-align:center;">
+            <span class="font-mono" style="font-size:11px; color:var(--muted-ink);">04</span>
+            <div style="width:3.5rem; height:3.5rem; margin:1rem auto 0; border-radius:1rem; background:linear-gradient(135deg, var(--primary), #0d9488); display:flex; align-items:center; justify-content:center; color:#fff;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+            </div>
+            <h3 class="font-display" style="font-size:1.2rem; margin-top:1rem;">Report Writer</h3>
+            <p style="font-size:13px; color:var(--muted-ink); margin-top:0.5rem;">Organizes source-grounded findings into a clear, structured report.</p>
+          </div>
+        </div>
+
+        <div class="glass" style="max-width: 48rem; margin: 3rem auto 0; border-radius: 1.5rem; padding: 1.5rem; display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap;">
+          <div style="width:3rem; height:3rem; border-radius:1rem; background:#f0fdfa; display:flex; align-items:center; justify-content:center; color:#0f766e; border:1px solid #ccfbf1; flex-shrink:0;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <div>
+            <h4 class="font-display" style="font-size:1.1rem; font-weight:600;">Source-aware, traceable, cross-checked where possible.</h4>
+            <p style="font-size:13px; color:var(--muted-ink); margin-top:0.25rem; line-height:1.5;">
+              CogniCrew shows you exactly where every answer came from: the document page or the web source. It never invents a source, and it tells you honestly when evidence wasn't found.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section id="how-it-works" style="padding: 5.5rem 0;">
+      <div class="max-w-7xl">
+        <div style="text-align:center; max-width:40rem; margin:0 auto;">
+          <p class="eyebrow">How it works</p>
+          <h2 class="font-display" style="font-size:2.4rem; font-weight:600; margin-top:0.75rem;">From question to cited answer</h2>
+          <p style="color:var(--muted-ink); margin-top:0.75rem;">Four steps. No spreadsheets, no tab-juggling, no formatting by hand.</p>
+        </div>
+
+        <div class="grid-4" style="margin-top: 3rem;">
+          <div class="glass card-item">
+            <span class="font-mono" style="display:inline-flex; width:2.5rem; height:2.5rem; border-radius:0.75rem; background:linear-gradient(135deg, var(--primary), #0d9488); color:#fff; align-items:center; justify-content:center; font-weight:700;">01</span>
+            <h3 class="font-display" style="font-size:1.3rem; margin-top:1rem;">Ask</h3>
+            <p style="font-size:14px; color:var(--muted-ink); margin-top:0.5rem; line-height:1.6;">State your question: a concept, a chapter, or a topic.</p>
+          </div>
+
+          <div class="glass card-item">
+            <span class="font-mono" style="display:inline-flex; width:2.5rem; height:2.5rem; border-radius:0.75rem; background:linear-gradient(135deg, var(--primary), #0d9488); color:#fff; align-items:center; justify-content:center; font-weight:700;">02</span>
+            <h3 class="font-display" style="font-size:1.3rem; margin-top:1rem;">Retrieve</h3>
+            <p style="font-size:14px; color:var(--muted-ink); margin-top:0.5rem; line-height:1.6;">The agents pull the actual pages and sources that discuss it.</p>
+          </div>
+
+          <div class="glass card-item">
+            <span class="font-mono" style="display:inline-flex; width:2.5rem; height:2.5rem; border-radius:0.75rem; background:linear-gradient(135deg, var(--primary), #0d9488); color:#fff; align-items:center; justify-content:center; font-weight:700;">03</span>
+            <h3 class="font-display" style="font-size:1.3rem; margin-top:1rem;">Check</h3>
+            <p style="font-size:14px; color:var(--muted-ink); margin-top:0.5rem; line-height:1.6;">Claims are checked against retrieved evidence where possible.</p>
+          </div>
+
+          <div class="glass card-item">
+            <span class="font-mono" style="display:inline-flex; width:2.5rem; height:2.5rem; border-radius:0.75rem; background:linear-gradient(135deg, var(--primary), #0d9488); color:#fff; align-items:center; justify-content:center; font-weight:700;">04</span>
+            <h3 class="font-display" style="font-size:1.3rem; margin-top:1rem;">Explain</h3>
+            <p style="font-size:14px; color:var(--muted-ink); margin-top:0.5rem; line-height:1.6;">You get a direct answer with the evidence one click away.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Interactive Demo Section -->
+    <section id="demo" style="padding: 5.5rem 0;">
+      <div class="max-w-7xl">
+        <div style="text-align:center; max-width:40rem; margin:0 auto;">
+          <p class="eyebrow">Demo</p>
+          <h2 class="font-display" style="font-size:2.4rem; font-weight:600; margin-top:0.75rem;">See it in action</h2>
+          <p style="color:var(--muted-ink); margin-top:0.75rem;">An interactive preview of the workspace. Marked clearly as a preview; real runs answer from your actual documents.</p>
+        </div>
+
+        <div class="glass demo-window" style="max-width: 56rem; margin: 3rem auto 0; position:relative;">
+          <!-- App-window chrome -->
+          <div class="demo-window-bar">
+            <div class="window-dots" aria-hidden="true">
+              <span class="window-dot window-dot-red"></span>
+              <span class="window-dot window-dot-yellow"></span>
+              <span class="window-dot window-dot-green"></span>
+            </div>
+            <span class="window-live-badge">
+              <span class="live-dot">
+                <span class="live-dot-ping"></span>
+                <span class="live-dot-solid"></span>
+              </span>
+              Live
+            </span>
+          </div>
+
+          <div class="demo-window-body">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem;">
+            <div class="tabs-nav" role="tablist">
+              <button class="tab-btn active" id="demo-tab-doc" onclick="switchDemo('doc')">Document Research</button>
+              <button class="tab-btn" id="demo-tab-topic" onclick="switchDemo('topic')">Topic Research</button>
+              <button class="tab-btn" id="demo-tab-study" onclick="switchDemo('study')">AI Study Tools</button>
+            </div>
+            <span class="glass-control font-mono" style="font-size:11px; padding:4px 12px; border-radius:9999px; color:var(--text-muted);">Interactive preview</span>
+          </div>
+
+          <!-- AI Study Tools Sub-tabs (Phase 3) -->
+          <div id="demo-study-subnav" style="display:none; margin-bottom:1.5rem; gap:0.5rem; flex-wrap:wrap;">
+            <button class="study-tool-tab active" id="demo-subtab-quiz" onclick="switchStudyDemo('quiz')" style="font-size:12px; padding:5px 12px;">AI Quiz</button>
+            <button class="study-tool-tab" id="demo-subtab-flashcards" onclick="switchStudyDemo('flashcards')" style="font-size:12px; padding:5px 12px;">AI Flashcards</button>
+            <button class="study-tool-tab" id="demo-subtab-guide" onclick="switchStudyDemo('guide')" style="font-size:12px; padding:5px 12px;">Study Guide</button>
+            <button class="study-tool-tab" id="demo-subtab-mindmap" onclick="switchStudyDemo('mindmap')" style="font-size:12px; padding:5px 12px;">Mind Map</button>
+            <button class="study-tool-tab" id="demo-subtab-cheatsheet" onclick="switchStudyDemo('cheatsheet')" style="font-size:12px; padding:5px 12px;">Cheat Sheet</button>
+          </div>
+
+          <!-- 1. Document Demo Pane: PDF -> question -> grounded answer -> citation -->
+          <div id="demo-pane-doc" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:1.5rem;">
+            <div style="display:flex; flex-direction:column; gap:1rem;">
+              <div style="border:2px dashed rgba(0,143,134,0.3); border-radius:1rem; padding:1.5rem; text-align:center; background:var(--surface);">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.8" style="margin:0 auto;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                <p style="font-size:14px; font-weight:600; margin-top:0.5rem; color:var(--text-primary);">Java: A Beginner's Guide, 6th Edition.pdf</p>
+                <p style="font-size:12px; color:var(--text-muted);">Uploaded academic PDF</p>
+              </div>
+
+              <div class="glass" style="padding:1rem; border-radius:1rem;">
+                <p class="font-mono" style="font-size:11px; color:var(--text-muted); text-transform:uppercase;">Your question</p>
+                <div style="display:flex; align-items:center; gap:0.5rem; margin-top:0.5rem; background:var(--surface-elevated); padding:0.5rem 0.75rem; border-radius:0.75rem; border:1px solid var(--border);">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                  <span style="font-size:13px; color:var(--text-primary);">What does <strong style="color:var(--accent);">Double Buffering</strong> mean, and where is it explained?</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="glass" style="padding:1.5rem; border-radius:1rem;">
+              <p class="font-mono" style="font-size:11px; color:var(--text-muted); text-transform:uppercase;">Grounded Answer</p>
+              <p style="font-size:14px; line-height:1.6; margin-top:0.75rem; color:var(--text-primary);">
+                Double buffering keeps two frame buffers so one can be displayed while the next is drawn, preventing the flicker seen when drawing straight to the screen.
+              </p>
+              <div style="margin-top:1rem; background:var(--surface-elevated); border-radius:0.75rem; padding:1rem; border:1px solid var(--border);">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <span style="font-size:13px; font-weight:600; color:var(--text-primary);">Java: A Beginner's Guide</span>
+                  <span class="badge-live" style="font-size:10px;">PDF page 870 · Book page 833</span>
+                </div>
+                <p style="font-size:12px; font-style:italic; color:var(--text-secondary); border-left:2px solid var(--accent); padding-left:0.5rem; margin-top:0.5rem;">
+                  "Use of an offscreen image to reduce flicker is called double buffering, because the screen is considered a buffer for pixels, and the offscreen image is the second buffer…"
+                </p>
+                <p class="font-mono" style="font-size:10px; color:var(--text-muted); text-transform:uppercase; margin-top:0.5rem;">Verified page citation</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Topic Demo Pane: topic -> answer -> verified sources -->
+          <div id="demo-pane-topic" style="display:none; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:1.5rem;">
+            <div style="display:flex; flex-direction:column; gap:1rem;">
+              <div class="glass" style="padding:1.5rem; border-radius:1rem;">
+                <p class="font-mono" style="font-size:11px; color:var(--text-muted); text-transform:uppercase;">Research topic</p>
+                <div style="display:flex; align-items:center; gap:0.5rem; margin-top:0.5rem; background:var(--surface-elevated); padding:0.5rem 0.75rem; border-radius:0.75rem; border:1px solid var(--border);">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                  <span style="font-size:13px; color:var(--text-primary);">What is <strong style="color:var(--accent);">double buffering</strong> in computer graphics?</span>
+                </div>
+              </div>
+              <div class="glass" style="padding:1rem; border-radius:1rem; background:var(--accent-soft);">
+                <p style="font-size:12px; color:var(--text-primary); line-height:1.5;">No documents required: when Web Search is enabled, Exa queries verified live academic sources.</p>
+              </div>
+            </div>
+
+            <div class="glass" style="padding:1.5rem; border-radius:1rem;">
+              <p class="font-mono" style="font-size:11px; color:var(--text-muted); text-transform:uppercase;">Synthesized Answer</p>
+              <p style="font-size:14px; line-height:1.6; margin-top:0.75rem; color:var(--text-primary);">
+                Double buffering is a graphics rendering technique that eliminates tearing and visual artifacts by writing to a back buffer and swapping it to the screen upon completion.
+              </p>
+              <div style="margin-top:1rem; display:flex; flex-direction:column; gap:0.5rem;">
+                <div class="source-card">
+                  <span class="font-mono" style="font-size:11px; color:var(--accent); font-weight:600;">[1]</span>
+                  <span style="font-size:12px; font-weight:500; margin-left:0.5rem;">wikipedia.org — Multiple buffering</span>
+                </div>
+                <div class="source-card">
+                  <span class="font-mono" style="font-size:11px; color:var(--accent); font-weight:600;">[2]</span>
+                  <span style="font-size:12px; font-weight:500; margin-left:0.5rem;">docs.gl — OpenGL Buffer swap behavior</span>
+                </div>
+                <p class="font-mono" style="font-size:10px; color:var(--text-muted); text-transform:uppercase; margin-top:0.25rem;">Verified web sources</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. AI Quiz Demo Pane: question -> options -> progress -> score -->
+          <div id="demo-pane-quiz" style="display:none; grid-template-columns: 1fr; gap:1.5rem;">
+            <div class="glass" style="padding:1.75rem; border-radius:1rem; border:1px solid var(--border);">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                <span class="eyebrow" style="color:var(--accent);">Question 1 of 5</span>
+                <span class="study-score-pill" id="demo-quiz-score-pill">Score: 1 / 1</span>
+              </div>
+              <div style="width:100%; height:4px; background:var(--border); border-radius:999px; margin-bottom:1.25rem; overflow:hidden;">
+                <div style="width:20%; height:100%; background:var(--accent);"></div>
+              </div>
+              <h3 style="font-size:1.15rem; font-weight:600; color:var(--text-primary); margin-bottom:1.25rem;">
+                Why does double buffering prevent screen flicker in animation?
+              </h3>
+              <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:0.75rem;">
+                <button type="button" class="quiz-option-btn correct" onclick="selectDemoQuizOption(this, 0)" style="text-align:left;">
+                  <span class="quiz-opt-letter">A</span>
+                  <span>Rendering occurs on an off-screen buffer before swapping</span>
+                </button>
+                <button type="button" class="quiz-option-btn" onclick="selectDemoQuizOption(this, 1)" style="text-align:left;">
+                  <span class="quiz-opt-letter">B</span>
+                  <span>It doubles the GPU clock frequency during rasterization</span>
+                </button>
+                <button type="button" class="quiz-option-btn" onclick="selectDemoQuizOption(this, 2)" style="text-align:left;">
+                  <span class="quiz-opt-letter">C</span>
+                  <span>It suppresses draw calls during monitor vertical retrace</span>
+                </button>
+                <button type="button" class="quiz-option-btn" onclick="selectDemoQuizOption(this, 3)" style="text-align:left;">
+                  <span class="quiz-opt-letter">D</span>
+                  <span>It compresses pixel bitmaps before pushing to VRAM</span>
+                </button>
+              </div>
+              <div style="margin-top:1rem; background:rgba(16, 185, 129, 0.1); border:1px solid #10b981; border-radius:0.75rem; padding:0.75rem 1rem;">
+                <p style="font-size:13px; font-weight:600; color:#059669; margin:0 0 2px;">✓ Correct — Grounded in Document Page 870</p>
+                <p style="font-size:12px; color:var(--text-secondary); margin:0;">The off-screen image serves as an intermediate buffer, keeping incomplete frames hidden from view.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. AI Flashcards Demo Pane: front -> Flip Card -> answer -->
+          <div id="demo-pane-flashcards" style="display:none; grid-template-columns: 1fr; gap:1.5rem;">
+            <div style="max-width:520px; margin:0 auto; width:100%;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+                <span class="eyebrow" style="color:var(--accent);">Card 1 of 12</span>
+                <span style="font-size:12px; color:var(--text-muted);">Click card or button to flip ↺</span>
+              </div>
+              <div class="fc-wrapper" onclick="toggleDemoFlashcard()" style="perspective:1000px; height:220px; cursor:pointer;">
+                <div id="demo-fc-inner" class="fc-card-inner" style="position:relative; width:100%; height:100%; transition:transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); transform-style:preserve-3d;">
+                  <div class="glass" style="position:absolute; width:100%; height:100%; backface-visibility:hidden; border-radius:1rem; padding:1.5rem; display:flex; flex-direction:column; justify-content:space-between; border:1px solid var(--border);">
+                    <span class="study-badge">QUESTION / TERM</span>
+                    <p style="font-size:1.2rem; font-weight:600; color:var(--text-primary); text-align:center;">What is the primary role of the offscreen buffer in double buffering?</p>
+                    <div style="font-size:11px; color:var(--text-muted); text-align:right;">Click to reveal answer ↺</div>
+                  </div>
+                  <div class="glass" style="position:absolute; width:100%; height:100%; backface-visibility:hidden; transform:rotateY(180deg); border-radius:1rem; padding:1.5rem; display:flex; flex-direction:column; justify-content:space-between; border:1px solid var(--accent); background:var(--surface);">
+                    <span class="study-badge" style="background:var(--accent-soft); color:var(--accent);">VERIFIED ANSWER</span>
+                    <p style="font-size:14px; line-height:1.6; color:var(--text-primary); text-align:center;">It holds the next complete frame while the front buffer is actively displayed on screen, eliminating partial rendering flicker.</p>
+                    <div style="font-size:11px; color:var(--accent); font-family:var(--font-mono); text-align:right;">Page 870 · Section 12.4</div>
+                  </div>
+                </div>
+              </div>
+              <div style="display:flex; justify-content:center; margin-top:1rem;">
+                <button type="button" class="btn-primary" onclick="toggleDemoFlashcard()" style="padding:6px 18px; font-size:13px;">Flip Card ↺</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 5. Study Guide Demo Pane: document -> table of contents -> structured study material -->
+          <div id="demo-pane-guide" style="display:none; grid-template-columns: 240px 1fr; gap:1.5rem;">
+            <div class="glass" style="padding:1rem; border-radius:1rem; border:1px solid var(--border);">
+              <p class="font-mono" style="font-size:11px; color:var(--text-muted); text-transform:uppercase; margin-bottom:0.75rem;">Table of Contents</p>
+              <div style="display:flex; flex-direction:column; gap:0.4rem; font-size:12px;">
+                <span style="font-weight:600; color:var(--accent);">1. Executive Overview</span>
+                <span style="color:var(--text-secondary);">2. Buffer Architecture</span>
+                <span style="color:var(--text-secondary);">3. Flicker Suppression</span>
+                <span style="color:var(--text-secondary);">4. Formulas & Metrics</span>
+                <span style="color:var(--text-secondary);">5. Review Questions</span>
+              </div>
+            </div>
+            <div class="glass" style="padding:1.5rem; border-radius:1rem; border:1px solid var(--border);">
+              <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:0.5rem; margin-bottom:0.75rem;">
+                <h4 style="font-size:14px; font-weight:700; color:var(--text-primary); margin:0;">1. Executive Overview: Buffer Architecture</h4>
+                <span class="badge-live" style="font-size:10px;">Chapter 12</span>
+              </div>
+              <p style="font-size:13px; line-height:1.6; color:var(--text-secondary);">
+                In computer animation and graphical UI rendering, double buffering prevents flickering by creating two memory buffers. Graphics primitives are written to the back buffer in system memory or VRAM, then swapped in a single vertical sync cycle.
+              </p>
+              <div style="margin-top:0.75rem; padding:0.5rem 0.75rem; background:var(--surface-elevated); border-radius:0.5rem; border-left:3px solid var(--accent); font-size:12px; color:var(--text-secondary);">
+                <strong>Key Takeaway:</strong> Frame swaps synchronized with V-Sync eliminate horizontal tearing artifacts completely.
+              </div>
+            </div>
+          </div>
+
+          <!-- 6. Mind Map Demo Pane: document -> hierarchy -> expandable nodes -->
+          <div id="demo-pane-mindmap" style="display:none; grid-template-columns: 1fr; gap:1.5rem;">
+            <div class="glass" style="padding:1.5rem; border-radius:1rem; border:1px solid var(--border);">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.5rem;">
+                <span class="eyebrow" style="color:var(--accent);">Document Hierarchy</span>
+                <span style="font-size:11px; color:var(--text-muted);">Root → Chapters → Core Concepts</span>
+              </div>
+              <div style="font-family:var(--font-mono); font-size:13px; line-height:2; color:var(--text-primary); background:rgba(255,255,255,0.7); padding:1.25rem; border-radius:0.75rem; border:1px solid var(--border);">
+                <div><span style="color:#008f86; font-weight:700;">Data Science</span></div>
+                <div style="padding-left:1.5rem; border-left:2px solid #e2e8f0; margin-left:0.5rem;">
+                  <div>├── <span style="font-weight:600; color:#0284c7; cursor:pointer;" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display==='none'?'block':'none'">Data Operations ▾</span>
+                    <div style="padding-left:1.5rem; font-size:12px; color:var(--text-secondary);">
+                      ├── Data Cleaning & Normalization<br>
+                      └── Feature Scaling (Min-Max, Z-score)
+                    </div>
+                  </div>
+                  <div>├── <span style="font-weight:600; color:#0284c7; cursor:pointer;" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display==='none'?'block':'none'">Statistics & Modeling ▾</span>
+                    <div style="padding-left:1.5rem; font-size:12px; color:var(--text-secondary);">
+                      ├── Descriptive Statistics (Mean, Median, Variance)<br>
+                      └── Hypothesis Testing (p-value, t-test)
+                    </div>
+                  </div>
+                  <div>├── <span style="font-weight:600; color:#0284c7; cursor:pointer;" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display==='none'?'block':'none'">Machine Learning ▾</span>
+                    <div style="padding-left:1.5rem; font-size:12px; color:var(--text-secondary);">
+                      ├── Supervised Learning (Regression, Classification)<br>
+                      └── Unsupervised Clustering (k-Means, PCA)
+                    </div>
+                  </div>
+                  <div>└── <span style="font-weight:600; color:#0284c7; cursor:pointer;" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display==='none'?'block':'none'">Visualization & Metrics ▾</span>
+                    <div style="padding-left:1.5rem; font-size:12px; color:var(--text-secondary);">
+                      ├── Exploratory Data Analysis (EDA)<br>
+                      └── Evaluation (Confusion Matrix, ROC-AUC)
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 7. Cheat Sheet Demo Pane: document -> formulas -> definitions -> compact revision content -->
+          <div id="demo-pane-cheatsheet" style="display:none; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:1.5rem;">
+            <div class="glass" style="padding:1.25rem; border-radius:1rem; border:1px solid var(--border);">
+              <span class="eyebrow" style="color:var(--accent);">Core Definitions</span>
+              <ul style="font-size:12px; line-height:1.6; margin-top:0.5rem; padding-left:1.2rem; color:var(--text-secondary);">
+                <li><strong>Front Buffer:</strong> Video memory buffer read by display controller.</li>
+                <li><strong>Back Buffer:</strong> Offscreen memory buffer where rendering draws.</li>
+                <li><strong>Page Flip:</strong> Instant pointer swap between back and front buffer.</li>
+              </ul>
+            </div>
+            <div class="glass" style="padding:1.25rem; border-radius:1rem; border:1px solid var(--border);">
+              <span class="eyebrow" style="color:var(--accent);">High-Yield Formulas & Actions</span>
+              <div style="margin-top:0.5rem; font-family:var(--font-mono); font-size:11px; background:var(--surface-elevated); padding:0.5rem; border-radius:0.5rem; color:var(--accent);">
+                Frame Time: T_frame = 1 / Refresh_Hz<br>
+                Swap Latency = T_render + T_vsync
+              </div>
+              <div style="display:flex; gap:0.5rem; margin-top:1rem;">
+                <button type="button" class="btn-secondary" style="font-size:11px; padding:4px 10px;">Export Markdown 📥</button>
+                <button type="button" class="btn-primary" style="font-size:11px; padding:4px 10px;">Print PDF 🖨️</button>
+              </div>
+            </div>
+          </div>
+          </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tech Stack Section -->
+    <section id="tech-stack" style="padding: 5.5rem 0;">
+      <div class="max-w-7xl">
+        <div style="text-align:center; max-width:40rem; margin:0 auto;">
+          <p class="eyebrow">Tech stack</p>
+          <h2 class="font-display" style="font-size:2.4rem; font-weight:600; margin-top:0.75rem;">Built with</h2>
+          <p style="color:var(--muted-ink); margin-top:0.75rem;">A pragmatic, explainable stack: proven tools, one clear pipeline, no surprises.</p>
+        </div>
+
+        <div class="grid-4" style="margin-top: 3rem;">
+          <div class="glass card-item" style="text-align:center;">
+            <div style="width:3.5rem; height:3.5rem; margin:0 auto; border-radius:1rem; background:linear-gradient(135deg, var(--primary), #0d9488); display:flex; align-items:center; justify-content:center; color:#fff;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+            </div>
+            <h3 class="font-display" style="font-size:1.15rem; margin-top:1rem;">HTML + CSS</h3>
+            <p style="font-size:13px; color:var(--muted-ink); margin-top:0.5rem;">Clean vanilla HTML structure with custom CSS design tokens and glassmorphism.</p>
+          </div>
+
+          <div class="glass card-item" style="text-align:center;">
+            <div style="width:3.5rem; height:3.5rem; margin:0 auto; border-radius:1rem; background:linear-gradient(135deg, var(--primary), #0d9488); display:flex; align-items:center; justify-content:center; color:#fff;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 7h10"/><path d="M7 12h10"/><path d="M7 17h10"/></svg>
+            </div>
+            <h3 class="font-display" style="font-size:1.15rem; margin-top:1rem;">Python Backend</h3>
+            <p style="font-size:13px; color:var(--muted-ink); margin-top:0.5rem;">FastAPI powering research logic, authentication, PDF extraction, and sessions.</p>
+          </div>
+
+          <div class="glass card-item" style="text-align:center;">
+            <div style="width:3.5rem; height:3.5rem; margin:0 auto; border-radius:1rem; background:linear-gradient(135deg, var(--primary), #0d9488); display:flex; align-items:center; justify-content:center; color:#fff;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"/></svg>
+            </div>
+            <h3 class="font-display" style="font-size:1.15rem; margin-top:1rem;">PostgreSQL</h3>
+            <p style="font-size:13px; color:var(--muted-ink); margin-top:0.5rem;">Persistent relational database for users, sessions, documents, reports, and messages.</p>
+          </div>
+
+          <div class="glass card-item" style="text-align:center;">
+            <div style="width:3.5rem; height:3.5rem; margin:0 auto; border-radius:1rem; background:linear-gradient(135deg, var(--primary), #0d9488); display:flex; align-items:center; justify-content:center; color:#fff;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <h3 class="font-display" style="font-size:1.15rem; margin-top:1rem;">PyMuPDF</h3>
+            <p style="font-size:13px; color:var(--muted-ink); margin-top:0.5rem;">Page-aware PDF processing with cross-page printed number verification and TOC avoidance.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Built By Section -->
+    <section id="built-by" style="padding: 5.5rem 0;">
+      <div class="max-w-7xl">
+        <div style="text-align:center; max-width:44rem; margin:0 auto;">
+          <p class="eyebrow">Built by</p>
+          <h2 class="font-display" style="font-size:2.4rem; font-weight:600; margin-top:0.75rem;">An academic computer science project</h2>
+          <p style="color:var(--muted-ink); margin-top:0.75rem;">CogniCrew began as a question: what if research assistants actually worked like a collaborative team?</p>
+          <div style="margin-top:1.25rem; display:inline-block; padding:0.6rem 1.5rem; background:rgba(0,143,134,0.06); border:1px solid rgba(0,143,134,0.18); border-radius:9999px;">
+            <p style="font-size:13.5px; font-weight:600; color:var(--primary); margin:0;">
+              🎓 T.Y. B.Sc. Computer Science &middot; Academic Year 2025–26
+            </p>
+            <p style="font-size:12.5px; color:var(--muted-ink); margin:3px 0 0;">
+              Tikaram Jagannath Arts, Commerce and Science College, Khadki, Pune
+            </p>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:1.5rem; max-width:64rem; margin:3rem auto 0;">
+          <!-- Member 1: Prasanna Manoj Salve -->
+          <div class="glass" style="border-radius:1.5rem; padding:1.75rem; display:flex; align-items:center; gap:1.25rem;">
+            <span style="display:flex; width:4rem; height:4rem; border-radius:9999px; background:linear-gradient(135deg, var(--primary), #0d9488); color:#fff; align-items:center; justify-content:center; font-family:var(--font-display); font-size:1.35rem; font-weight:700; box-shadow:0 8px 20px -6px rgba(0,111,105,0.5); flex-shrink:0;">
+              PS
+            </span>
+            <div>
+              <h3 class="font-display" style="font-size:1.2rem; font-weight:700; margin:0; white-space:nowrap;">Prasanna Manoj Salve</h3>
+              <p style="color:var(--primary); font-weight:600; font-size:13.5px; margin-top:0.25rem;">
+                Application &amp; AI Development
+              </p>
+            </div>
+          </div>
+
+          <!-- Member 2: Mohammed Shahid Farooq Shaikh -->
+          <div class="glass" style="border-radius:1.5rem; padding:1.75rem; display:flex; align-items:center; gap:1.25rem;">
+            <span style="display:flex; width:4rem; height:4rem; border-radius:9999px; background:linear-gradient(135deg, #0284c7, #0369a1); color:#fff; align-items:center; justify-content:center; font-family:var(--font-display); font-size:1.35rem; font-weight:700; box-shadow:0 8px 20px -6px rgba(2,132,199,0.5); flex-shrink:0;">
+              MS
+            </span>
+            <div>
+              <h3 class="font-display" style="font-size:1.2rem; font-weight:700; margin:0;">Mohammed Shahid Farooq Shaikh</h3>
+              <p style="color:var(--primary); font-weight:600; font-size:13.5px; margin-top:0.25rem;">
+                Deployment &amp; System Integration
+              </p>
+            </div>
+          </div>
+
+          <!-- Member 3: Ritish Malkit Muwal -->
+          <div class="glass" style="border-radius:1.5rem; padding:1.75rem; display:flex; align-items:center; gap:1.25rem;">
+            <span style="display:flex; width:4rem; height:4rem; border-radius:9999px; background:linear-gradient(135deg, #6366f1, #4f46e5); color:#fff; align-items:center; justify-content:center; font-family:var(--font-display); font-size:1.35rem; font-weight:700; box-shadow:0 8px 20px -6px rgba(99,102,241,0.5); flex-shrink:0;">
+              RM
+            </span>
+            <div>
+              <h3 class="font-display" style="font-size:1.2rem; font-weight:700; margin:0;">Ritish Malkit Muwal</h3>
+              <p style="color:var(--primary); font-weight:600; font-size:13.5px; margin-top:0.25rem;">
+                Software &amp; Interface Development
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section style="padding: 5.5rem 0;">
+      <div class="max-w-7xl">
+        <div class="glass" style="max-width:54rem; margin:0 auto; border-radius:2rem; padding:4rem 2rem; text-align:center;">
+          <p class="eyebrow">Get started</p>
+          <h2 class="font-display" style="font-size:2.5rem; font-weight:600; margin-top:1rem;">Your research team is ready when you are</h2>
+          <p style="color:var(--muted-ink); max-width:32rem; margin:1rem auto 0; line-height:1.6;">
+            Upload your study material, ask a question, or research a topic from the web, then let CogniCrew organize the evidence for you.
+          </p>
+          <div style="margin-top:2rem;">
+            <a href="/auth.html" id="landing-bottom-cta" class="btn-primary landing-cta-btn" style="padding:14px 36px; font-size:16px;">Start your first research run</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="max-w-7xl">
+      <div style="display:flex; flex-direction:column; align-items:center; gap:1.5rem;">
+        <a href="/" class="brand-link">
+          <span class="brand-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="5" r="3"/><circle cx="6" cy="19" r="3"/><circle cx="18" cy="19" r="3"/><path d="M12 8v4"/><path d="M6 16l6-4 6 4"/></svg>
+          </span>
+          <span class="brand-text">Cogni<span class="text-gradient">Crew</span></span>
+        </a>
+        <p class="font-display" style="font-size:14px; font-style:italic; color:var(--muted-ink);">Your Personal Team of AI Research Agents</p>
+        
+        <div style="display:flex; gap:1.5rem; flex-wrap:wrap; justify-content:center;">
+          <a href="#capabilities" class="nav-link">Capabilities</a>
+          <a href="#team" class="nav-link">Agent Team</a>
+          <a href="#how-it-works" class="nav-link">How It Works</a>
+          <a href="/faq.html" class="nav-link">FAQ</a>
+          <a href="/contact.html" class="nav-link">Contact</a>
+        </div>
+
+        <div style="height:1px; width:100%; max-width:28rem; background:linear-gradient(90deg, transparent, rgba(0,143,134,0.3), transparent);"></div>
+
+        <p style="font-size:12px; color:var(--muted-ink);">
+          &copy; 2025–26 CogniCrew. All rights reserved. &middot; Built for academic research. Powered by AI.
+        </p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/js/app.js"></script>
+  <script>
+
+    function switchDemo(mode) {
+      const docTab = document.getElementById('demo-tab-doc');
+      const topicTab = document.getElementById('demo-tab-topic');
+      const studyTab = document.getElementById('demo-tab-study');
+      const subnav = document.getElementById('demo-study-subnav');
+
+      const allPanes = ['doc', 'topic', 'quiz', 'flashcards', 'guide', 'mindmap', 'cheatsheet'];
+      allPanes.forEach(p => {
+        const el = document.getElementById('demo-pane-' + p);
+        if (el) el.style.display = 'none';
+      });
+
+      docTab.classList.toggle('active', mode === 'doc');
+      topicTab.classList.toggle('active', mode === 'topic');
+      studyTab.classList.toggle('active', mode === 'study');
+
+      if (mode === 'doc') {
+        subnav.style.display = 'none';
+        document.getElementById('demo-pane-doc').style.display = 'grid';
+      } else if (mode === 'topic') {
+        subnav.style.display = 'none';
+        document.getElementById('demo-pane-topic').style.display = 'grid';
+      } else if (mode === 'study') {
+        subnav.style.display = 'flex';
+        switchStudyDemo('quiz');
+      }
+    }
+
+    function switchStudyDemo(sub) {
+      const subtabs = ['quiz', 'flashcards', 'guide', 'mindmap', 'cheatsheet'];
+      subtabs.forEach(s => {
+        const btn = document.getElementById('demo-subtab-' + s);
+        const pane = document.getElementById('demo-pane-' + s);
+        if (btn) btn.classList.toggle('active', s === sub);
+        if (pane) pane.style.display = (s === sub ? 'grid' : 'none');
+      });
+    }
+
+    function toggleDemoFlashcard() {
+      const card = document.getElementById('demo-fc-inner');
+      if (card) {
+        card.style.transform = (card.style.transform === 'rotateY(180deg)') ? 'rotateY(0deg)' : 'rotateY(180deg)';
+      }
+    }
+
+    function selectDemoQuizOption(btn, idx) {
+      const pane = document.getElementById('demo-pane-quiz');
+      if (!pane) return;
+      const btns = pane.querySelectorAll('.quiz-option-btn');
+      btns.forEach((b, i) => {
+        b.classList.remove('correct', 'incorrect');
+        if (i === 0) b.classList.add('correct');
+        else if (i === idx) b.classList.add('incorrect');
+      });
+      const pill = document.getElementById('demo-quiz-score-pill');
+      if (pill) pill.innerText = idx === 0 ? 'Score: 1 / 1' : 'Score: 0 / 1';
+    }
+  </script>
+</body>
+</html>

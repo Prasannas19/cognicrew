@@ -1,0 +1,10 @@
+{
+  "name": "cognicrew",
+  "version": "1.0.0",
+  "private": true,
+  "description": "CogniCrew - FastAPI backend serving the static frontend",
+  "scripts": {
+    "dev": "bash -c 'if curl -k -s -o /dev/null -m 2 https://127.0.0.1:4000/health; then echo \"CogniCrew already serving on :4000\"; sleep infinity; else exec ./.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 4000 --app-dir backend --ssl-keyfile certs/localhost-key.pem --ssl-certfile certs/localhost.pem; fi'",
+    "start": "bash -c 'if curl -k -s -o /dev/null -m 2 https://127.0.0.1:4000/health; then echo \"CogniCrew already serving on :4000\"; sleep infinity; else exec ./.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 4000 --app-dir backend --ssl-keyfile certs/localhost-key.pem --ssl-certfile certs/localhost.pem; fi'"
+  }
+}

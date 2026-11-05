@@ -1,0 +1,3 @@
+# Runtime dependency installed via backend/requirements.txt (PyMuPDF).
+# fitz-stubs/ contains local type stubs so Pylance/Pyright can type-check
+# fitz usage (PyMuPDF itself ships no type information).

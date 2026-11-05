@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign in — CogniCrew</title>
+  <meta name="description" content="Sign in or register for your academic AI research workspace.">
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    .auth-error-banner {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #b91c1c;
+      padding: 0.85rem 1.1rem;
+      border-radius: 0.85rem;
+      font-size: 13.5px;
+      line-height: 1.5;
+      margin-bottom: 1.5rem;
+      display: none;
+    }
+    .auth-form-label {
+      display: block;
+      font-size: 14.5px;
+      font-weight: 600;
+      color: var(--foreground);
+      margin-bottom: 0.6rem;
+    }
+    .auth-field { margin-bottom: 1.6rem; }
+    .auth-input {
+      width: 100%;
+      border-radius: 0.9rem;
+      border: 1px solid rgba(20, 32, 42, 0.16);
+      background: rgba(255, 255, 255, 0.85);
+      padding: 1.15rem 1.3rem;
+      font-size: 16.5px;
+      color: var(--ink);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+      font-family: var(--font-sans);
+    }
+    .auth-input::placeholder { color: rgba(125, 138, 145, 0.75); }
+    .auth-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(0, 143, 134, 0.15);
+      background: #ffffff;
+    }
+    .auth-submit {
+      width: 100%;
+      border-radius: 0.9rem;
+      padding: 16px;
+      font-size: 16.5px;
+      margin-top: 0.4rem;
+    }
+    .auth-submit:disabled {
+      opacity: 0.7;
+      cursor: wait;
+    }
+    .auth-tabs {
+      display: inline-flex;
+      padding: 6px;
+      border-radius: 1.05rem;
+      background: rgba(255, 255, 255, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.75);
+      gap: 6px;
+      margin-bottom: 2.2rem;
+    }
+    .auth-tab-btn {
+      padding: 12px 26px;
+      border-radius: 0.75rem;
+      font-size: 15.5px;
+      font-weight: 600;
+      border: none;
+      background: transparent;
+      color: var(--ink-soft);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .auth-field { margin-bottom: 1.5rem; }
+    .auth-input {
+      width: 100%;
+      border-radius: 0.9rem;
+      border: 1px solid rgba(20, 32, 42, 0.16);
+      background: rgba(255, 255, 255, 0.85);
+      padding: 1.05rem 1.2rem;
+      font-size: 16px;
+      color: var(--ink);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+      font-family: var(--font-sans);
+    }
+    .auth-input::placeholder { color: rgba(125, 138, 145, 0.75); }
+    .auth-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(0, 143, 134, 0.15);
+      background: #ffffff;
+    }
+    .auth-submit {
+      width: 100%;
+      border-radius: 0.9rem;
+      padding: 15px;
+      font-size: 16px;
+      margin-top: 0.4rem;
+    }
+    .auth-submit:disabled {
+      opacity: 0.7;
+      cursor: wait;
+    }
+    .auth-tabs {
+      display: inline-flex;
+      padding: 6px;
+      border-radius: 1.05rem;
+      background: rgba(255, 255, 255, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.75);
+      gap: 6px;
+      margin-bottom: 2.1rem;
+    }
+    .auth-tab-btn {
+      padding: 11px 24px;
+      border-radius: 0.75rem;
+      font-size: 15px;
+      font-weight: 600;
+      border: none;
+      background: transparent;
+      color: var(--ink-soft);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .auth-tab-btn.active {
+      background: linear-gradient(135deg, var(--primary) 0%, #0d9488 100%);
+      color: #ffffff;
+      box-shadow: 0 4px 14px -2px rgba(0, 111, 105, 0.4);
+    }
+    .auth-password-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .auth-password-wrap .auth-input { padding-right: 3.2rem; }
+    .password-toggle {
+      position: absolute;
+      right: 12px;
+      background: none;
+      border: none;
+      padding: 4px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted-ink);
+      border-radius: 0.5rem;
+    }
+    .password-toggle:hover { color: var(--ink); }
+    .password-toggle:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
+    }
+    .password-toggle .eye-off { display: none; }
+    .password-toggle[aria-pressed="true"] .eye-on { display: none; }
+    .password-toggle[aria-pressed="true"] .eye-off { display: inline; }
+  </style>
+</head>
+<body>
+  <div class="auth-split">
+
+    <!-- Left Promotional Panel -->
+    <aside class="auth-promo">
+      <div class="auth-promo-blob auth-promo-blob-1" aria-hidden="true"></div>
+      <div class="auth-promo-blob auth-promo-blob-2" aria-hidden="true"></div>
+
+      <div class="auth-promo-header">
+        <a href="/" class="auth-promo-brand">
+          <span class="auth-promo-icon">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="3"/><circle cx="6" cy="19" r="3"/><circle cx="18" cy="19" r="3"/><path d="M12 8v4"/><path d="M6 16l6-4 6 4"/></svg>
+          </span>
+          <span class="auth-promo-brand-text">Cogni<span style="color:#99f6e4;">Crew</span></span>
+        </a>
+      </div>
+
+      <div class="auth-promo-body">
+        <p class="eyebrow" style="color:#99f6e4; margin-bottom:1.4rem;">Academic research workspace</p>
+        <h1 class="auth-promo-headline">
+          Turn sources into<br>
+          <span class="promo-em promo-line2">reliable understanding.</span>
+        </h1>
+        <p class="auth-promo-sub">
+          Bring your study material together and find clear answers supported by reliable evidence.
+        </p>
+      </div>
+
+      <div class="auth-promo-features">
+        <span class="auth-promo-feature">
+          <span class="auth-promo-feature-icon"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>
+          Document Research
+        </span>
+        <span class="auth-promo-feature">
+          <span class="auth-promo-feature-icon"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>
+          Source Verification
+        </span>
+        <span class="auth-promo-feature">
+          <span class="auth-promo-feature-icon"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>
+          Structured Reports
+        </span>
+      </div>
+    </aside>
+
+    <!-- Right Authentication Panel -->
+    <main class="auth-panel">
+      <a href="/" class="auth-back">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Back
+      </a>
+
+      <div class="auth-panel-form">
+        <h1 class="auth-title" id="auth-title">Welcome back to CogniCrew</h1>
+        <p class="auth-subtitle" id="auth-subtitle">Sign in to continue your research workspace.</p>
+
+        <div class="auth-tabs" role="tablist">
+          <button class="auth-tab-btn active" id="tab-login" onclick="switchAuthTab('login')">Sign in</button>
+          <button class="auth-tab-btn" id="tab-register" onclick="switchAuthTab('register')">Create account</button>
+        </div>
+
+        <div id="auth-error" class="auth-error-banner" role="alert"></div>
+
+        <!-- Login Form -->
+        <form id="login-form" onsubmit="handleLogin(event)" novalidate>
+          <div class="auth-field">
+            <label class="auth-form-label" for="login-email">Email address</label>
+            <input type="email" id="login-email" class="auth-input" placeholder="name@example.edu" required autocomplete="email">
+          </div>
+          <div class="auth-field">
+            <label class="auth-form-label" for="login-password">Password</label>
+            <div class="auth-password-wrap">
+              <input type="password" id="login-password" class="auth-input" placeholder="Your password" required autocomplete="current-password">
+              <button type="button" class="password-toggle" aria-label="Show password" aria-pressed="false" onclick="togglePasswordVisibility('login-password', this)">
+                <svg class="eye-on" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg class="eye-off" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.58 6.5a10.6 10.6 0 0 1 1.42-.1c6.5 0 10 5.6 10 5.6a16.6 16.6 0 0 1-2.1 3.2"/><path d="M6.6 6.6A16.9 16.9 0 0 0 2 12s3.5 7 10 7c1.8 0 3.4-.4 4.9-1.1"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/><path d="M2 2l20 20"/></svg>
+              </button>
+            </div>
+          </div>
+          <button type="submit" class="btn-primary auth-submit" id="login-btn">Sign in</button>
+        </form>
+
+        <!-- Register Form -->
+        <form id="register-form" style="display:none;" onsubmit="handleRegister(event)" novalidate>
+          <div class="auth-field">
+            <label class="auth-form-label" for="reg-name">Full name</label>
+            <input type="text" id="reg-name" class="auth-input" placeholder="e.g. Prasanna Salve" required autocomplete="name">
+          </div>
+          <div class="auth-field">
+            <label class="auth-form-label" for="reg-email">Email address</label>
+            <input type="email" id="reg-email" class="auth-input" placeholder="name@example.edu" required autocomplete="email">
+          </div>
+          <div class="auth-field">
+            <label class="auth-form-label" for="reg-password">Password</label>
+            <div class="auth-password-wrap">
+              <input type="password" id="reg-password" class="auth-input" placeholder="Minimum 12 characters" minlength="12" required autocomplete="new-password">
+              <button type="button" class="password-toggle" aria-label="Show password" aria-pressed="false" onclick="togglePasswordVisibility('reg-password', this)">
+                <svg class="eye-on" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg class="eye-off" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.58 6.5a10.6 10.6 0 0 1 1.42-.1c6.5 0 10 5.6 10 5.6a16.6 16.6 0 0 1-2.1 3.2"/><path d="M6.6 6.6A16.9 16.9 0 0 0 2 12s3.5 7 10 7c1.8 0 3.4-.4 4.9-1.1"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/><path d="M2 2l20 20"/></svg>
+              </button>
+            </div>
+            <span style="font-size:12px; color:var(--muted-ink); margin-top:6px; display:block;">Must be at least 12 characters long.</span>
+          </div>
+          <button type="submit" class="btn-primary auth-submit" id="reg-btn">Create account</button>
+        </form>
+      </div>
+    </main>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script>
+    // Turn backend error payloads (string detail OR FastAPI 422 array detail) into a readable message.
+    function readableAuthError(data, fallback) {
+      if (!data) return fallback;
+      const d = data.detail !== undefined ? data.detail : data;
+      if (typeof d === "string") return d;
+      if (Array.isArray(d)) {
+        const msgs = d.map(item => {
+          if (item && item.msg) {
+            let m = item.msg;
+            if (m.includes("at least 12 characters")) return "Password must be at least 12 characters long.";
+            if (m.includes("valid email")) return "Please enter a valid email address.";
+            if (m.includes("at least 2 characters")) return "Please enter your full name (at least 2 characters).";
+            return m;
+          }
+          return "";
+        }).filter(Boolean);
+        if (msgs.length) return msgs[0];
+      }
+      return fallback;
+    }
+
+    function switchAuthTab(tab) {
+      const errBox = document.getElementById('auth-error');
+      errBox.style.display = 'none';
+      if (tab === 'login') {
+        document.getElementById('tab-login').classList.add('active');
+        document.getElementById('tab-register').classList.remove('active');
+        document.getElementById('login-form').style.display = 'block';
+        document.getElementById('register-form').style.display = 'none';
+        document.getElementById('auth-title').innerText = 'Welcome back to CogniCrew';
+        document.getElementById('auth-subtitle').innerText = 'Sign in to continue your research workspace.';
+      } else {
+        document.getElementById('tab-register').classList.add('active');
+        document.getElementById('tab-login').classList.remove('active');
+        document.getElementById('login-form').style.display = 'none';
+        document.getElementById('register-form').style.display = 'block';
+        document.getElementById('auth-title').innerText = 'Create your CogniCrew account';
+        document.getElementById('auth-subtitle').innerText = 'Start researching with documents, sources, and evidence.';
+      }
+    }
+
+    function togglePasswordVisibility(inputId, btn) {
+      const input = document.getElementById(inputId);
+      if (!input) return;
+      const visible = input.type === 'text';
+      input.type = visible ? 'password' : 'text';
+      btn.setAttribute('aria-pressed', visible ? 'false' : 'true');
+      btn.setAttribute('aria-label', visible ? 'Show password' : 'Hide password');
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const errBox = document.getElementById('auth-error');
+      const btn = document.getElementById('login-btn');
+      errBox.style.display = 'none';
+      btn.disabled = true;
+      btn.innerText = 'Signing in…';
+
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+
+      try {
+        const res = await apiFetch('/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(readableAuthError(data, 'Could not sign in. Please check your email and password.'));
+        if (data && data.name) {
+          try { localStorage.setItem('cc_auth_user', JSON.stringify({ name: data.name, email: data.email })); } catch (_) {}
+        }
+        window.location.href = '/dashboard.html';
+      } catch (err) {
+        errBox.innerText = err.message;
+        errBox.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Sign in';
+      }
+    }
+
+    async function handleRegister(e) {
+      e.preventDefault();
+      const errBox = document.getElementById('auth-error');
+      const btn = document.getElementById('reg-btn');
+      errBox.style.display = 'none';
+      btn.disabled = true;
+      btn.innerText = 'Creating account…';
+
+      const name = document.getElementById('reg-name').value;
+      const email = document.getElementById('reg-email').value;
+      const password = document.getElementById('reg-password').value;
+
+      try {
+        const res = await apiFetch('/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, password })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(readableAuthError(data, 'Could not create the account. Please try again.'));
+        if (data && data.name) {
+          try { localStorage.setItem('cc_auth_user', JSON.stringify({ name: data.name, email: data.email })); } catch (_) {}
+        }
+        window.location.href = '/dashboard.html';
+      } catch (err) {
+        errBox.innerText = err.message;
+        errBox.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Create account';
+      }
+    }
+  </script>
+</body>
+</html>
