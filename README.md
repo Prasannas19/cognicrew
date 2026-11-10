@@ -460,3 +460,22 @@ CogniCrew demonstrates practical applications of foundational concepts and techn
 - Add support for plain text and Markdown document uploads.
 - Implement distributed Redis-based rate limiting for multi-worker production deployments.
 - Support real-time streaming tokens for LLM-synthesized report summaries.
+
+---
+
+## Detailed Local Setup
+
+The `npm start` script expects a Python virtual environment at `./.venv` and localhost TLS certificates in `certs/`. Both are git-ignored, so a fresh clone needs these extra steps:
+
+```bash
+python -m venv .venv
+./.venv/bin/pip install -r backend/requirements.txt
+
+mkdir -p certs
+mkcert -install
+mkcert -cert-file certs/localhost.pem -key-file certs/localhost-key.pem localhost 127.0.0.1
+
+npm start   # serves https://localhost:4000
+```
+
+Without the certificates, `npm start` fails because the Uvicorn command in `package.json` references `certs/localhost-key.pem` and `certs/localhost.pem`.
